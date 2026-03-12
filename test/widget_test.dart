@@ -6,13 +6,19 @@ void main() {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const VirtualJaapApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget); // The large TAP counter
-    expect(find.text('TAP'), findsOneWidget);
+    // Verify that our animation overlay is present
+    expect(find.text('Tap anywhere to start'), findsOneWidget);
 
-    // Tap the central area 108 times to trigger the dialog
+    // Tap anywhere (the overlay text works) to dismiss the overlay
+    await tester.tap(find.text('Tap anywhere to start'));
+    await tester.pumpAndSettle();
+
+    // Verify that our counter is now visible and at 0.
+    expect(find.text('0'), findsWidgets); // Bead box and counter
+
+    // Tap the center of the screen 108 times to trigger the dialog
     for (int i = 0; i < 108; i++) {
-        await tester.tap(find.text('TAP'));
+        await tester.tapAt(const Offset(400, 300)); // Tap anywhere
         await tester.pump();
     }
 

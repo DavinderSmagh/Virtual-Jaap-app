@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'dart:math' as math;
 
 void main() {
@@ -37,18 +38,41 @@ class _JaapScreenState extends State<JaapScreen> {
   int _beadCount = 0;
   int _malaCount = 0;
   bool _hasStarted = false;
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  Future<void> _playChant() async {
+    try {
+      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      // We are trying to play a local asset. It will error gracefully if it doesn't exist yet!
+      await _audioPlayer.play(AssetSource('audio/chant.mp3'));
+    } catch (e) {
+      debugPrint("Audio play failed: $e");
+    }
+  }
+
+  Future<void> _stopChant() async {
+    await _audioPlayer.stop();
+  }
 
   void _increment() {
     HapticFeedback.lightImpact(); // May not work on web but fine for mobile
     setState(() {
       if (!_hasStarted) {
         _hasStarted = true;
+        _playChant();
       }
       _beadCount++;
       if (_beadCount == 108) {
         // Haptic feedback for mala completion
         HapticFeedback.heavyImpact();
         _malaCount++;
+        _stopChant();
         _showCompletionDialog();
       }
     });
@@ -122,6 +146,7 @@ class _JaapScreenState extends State<JaapScreen> {
               child: const Text('Reset'),
               onPressed: () {
                 setState(() {
+                  _stopChant();
                   _beadCount = 0;
                   _malaCount = 0;
                   _hasStarted = false;
